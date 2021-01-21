@@ -52,7 +52,7 @@ driver = webdriver.Chrome(executable_path=DRIVER_PATH)
 
 
 
-for player in player_urls[:1000]:
+for player in player_urls[1000:]:
 
     individual_scrape(player)
         #if stats != 'fail':
@@ -69,4 +69,3 @@ print("Elapsed Time: %s" % (time.time() - start))
 # f = open('data.json', 'a')
 # json.dump(player_totals, f)
 # f.close()
-
