@@ -19,6 +19,7 @@ url_list = []
 
 for player in players:
  
+    original_name = player
     player = player.lower()
     name = player.replace('.', '').replace('\'', '').replace('-', '').split(' ')
 
@@ -28,7 +29,7 @@ for player in players:
         end_str = name[1][0] + '/' +  name[1][:5] + name[0][:2] + '01.html'
 
     url = 'https://www.basketball-reference.com/players/' + end_str
-    url_list.append((player,url))
+    url_list.append((original_name,url))
 
 urls = url_list #this being the list of url generated
 
@@ -43,8 +44,10 @@ def fetch_url(url):
 
     except Exception as e:
         print(url + "\tNA FAILED TO CONNECT\t" + str(e))
-        
+
 threads = [threading.Thread(target=fetch_url, args=(url,)) for url in urls]
+        
+#threads = [threading.Thread(target=fetch_url, args=(url,)) for url in urls]
 for thread in threads:
     time.sleep(0.05)
     thread.start()
@@ -59,3 +62,7 @@ with open('fail_list.txt', 'w') as f:
     for i in fail_list:
     
         f.writelines(i[0] + '\n')
+
+with open('player_urls.txt', 'w') as f:
+    for i in url_list:
+        f.writelines(i[0] + '|' + i[1] + '\n')
