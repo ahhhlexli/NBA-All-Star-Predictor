@@ -20,7 +20,7 @@ def individual_scrape(player):
         table = driver.find_element_by_xpath('//*[@id="totals"]/tbody')
         season_totals = [[name] + row.text.split(' ') for row in table.find_elements_by_xpath('./tr')]
 
-        with open('player_data.csv', 'a') as file:
+        with open('player_data.csv', 'a', newline='') as file:
             write = csv.writer(file)
             write.writerows(season_totals)
 
