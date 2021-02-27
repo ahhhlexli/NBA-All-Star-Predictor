@@ -8,6 +8,7 @@ import csv
 
 start = time.time()
 
+
 def make_request(session, url):
     future = session.get(url)
     return future
@@ -71,7 +72,7 @@ for i in range(len(results)):
     for i in temp:
         season_totals.remove(i)
 
-    with open('players.csv', 'a', newline='', encoding='utf-8') as file:
+    with open('players_pergame.csv', 'a', newline='', encoding='utf-8') as file:
         write = csv.writer(file)
         write.writerows(season_totals)
     
