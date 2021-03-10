@@ -5,6 +5,8 @@ import seaborn as sns
 import lightgbm as lgb
 import numpy as np
 from lightgbm import LGBMClassifier
+from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
@@ -13,12 +15,53 @@ from sklearn.compose import ColumnTransformer
 
 
 @st.cache(allow_output_mutation=True) 
+
+
 def get_data():
     url = 'simple_data.csv'
     return pd.read_csv(url)
 
-columnTransformer = ColumnTransformer([('encoder', OneHotEncoder(), [1])], remainder='passthrough')
+#Page Configurations
+st.set_page_config(page_title='All Star Predictor', layout="wide", page_icon='🏀', initial_sidebar_state='collapsed')
 
+
+st.markdown("""
+<style>
+body {
+    color: #262730;
+    background-color: #778899;
+}
+.css-1aumxhk {
+  background-color: #011839;
+  background-image: none;
+  color: #ffffff;
+  border: none;
+  }
+.css-1aumxhk:hover{
+    background-color: #011839;
+    background-image: none;
+    color: #ffffff;
+    border: none;
+    }
+.css-145kmo2 {
+  font-size: 0.8rem;
+  color:#ffffff;
+  margin-bottom: 0.4rem;
+}
+
+.css-l7x2nz:hover{
+  background-color: #111;
+  color: #fff;
+}
+
+</style>
+    """, unsafe_allow_html=True)
+    
+
+
+
+#Data Processing
+columnTransformer = ColumnTransformer([('encoder', OneHotEncoder(), [1])], remainder='passthrough')
 #Build dataset
 df = get_data()
 df['position'] = df['position'].str.extract(r'(\w+),?')
@@ -101,21 +144,78 @@ temp = columnTransformer.transform(temp)
 #Build Model
 # mod_data = lgb.Dataset(X_train, y_train)
 # model = lgb.train(params={'objective':'binary'}, train_set=mod_data)
-model = LGBMClassifier()
-model.fit(X_train, y_train)
-predictions = model.predict(X_test)
+st.markdown('---')
+st.markdown('## **Baseline Models**')
 
-st.subheader("Model Training Accuracy")
-st.text(accuracy_score(y_test, predictions))
-st.code(classification_report(y_test, predictions))
-st.code(model.feature_importances_)
+col1, col2, col3 = st.beta_columns([0.9, 1, 1])
+with col1:
 
-st.title('Input Prediction')
-prediction = model.predict(temp)
-proba = model.predict_proba(temp)
-if prediction == 1:
-    st.header('Your player will be an All Star!')
-    st.subheader(f'Probability: {proba[0][1] * 100}')
-else:
-    st.header('Your player will not be an All Star.')
-    st.subheader(f'Probability: {proba[0][1] * 100}')
+    model = LGBMClassifier()
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+
+    st.subheader("LightGBM Base Model Training Accuracy")
+    st.text(f'Accuracy: {round(accuracy_score(y_test, predictions) * 100, 3)}%')
+    st.code(classification_report(y_test, predictions))
+
+# st.code(df.columns.tolist())
+# st.code(model.feature_importances_)
+# st.code(model.feature_importances_)
+
+    st.subheader('Input Prediction')
+    prediction = model.predict(temp)
+    proba = model.predict_proba(temp)
+    if prediction == 1:
+        st.header('Your player will be an All Star!')
+        st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
+    else:
+        st.header('Your player will not be an All Star.')
+        st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
+
+with col2:
+
+    model = XGBClassifier(objective='binary:logistic', use_label_encoder=False)
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+
+    st.subheader("XGBoost Base Model Training Accuracy")
+    st.text(f'Accuracy: {round(accuracy_score(y_test, predictions) * 100, 3)}%')
+    st.code(classification_report(y_test, predictions))
+
+# st.code(df.columns.tolist())
+# st.code(model.feature_importances_)
+# st.code(model.feature_importances_)
+
+    st.subheader('Input Prediction')
+    prediction = model.predict(temp)
+    proba = model.predict_proba(temp)
+    if prediction == 1:
+        st.header('Your player will be an All Star!')
+        st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
+    else:
+        st.header('Your player will not be an All Star.')
+        st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
+
+with col3:
+
+    model = RandomForestClassifier(n_estimators=100)
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+
+    st.subheader("Random Forest Base Model Training Accuracy")
+    st.text(f'Accuracy: {round(accuracy_score(y_test, predictions) * 100, 3)}%')
+    st.code(classification_report(y_test, predictions))
+
+# st.code(df.columns.tolist())
+# st.code(model.feature_importances_)
+# st.code(model.feature_importances_)
+
+    st.subheader('Input Prediction')
+    prediction = model.predict(temp)
+    proba = model.predict_proba(temp)
+    if prediction == 1:
+        st.header('Your player will be an All Star!')
+        st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
+    else:
+        st.header('Your player will not be an All Star.')
+        st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
