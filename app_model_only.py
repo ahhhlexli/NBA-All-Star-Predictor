@@ -1,22 +1,14 @@
 import pandas as pd
 import streamlit as st 
-import matplotlib.pyplot as plt 
-import seaborn as sns 
-import lightgbm as lgb
-import numpy as np
-from lightgbm import LGBMClassifier
+import pickle
 from xgboost import XGBClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer 
 
-
 @st.cache(allow_output_mutation=True) 
-
-
 def get_data():
     url = 'simple_data.csv'
     return pd.read_csv(url)
@@ -47,7 +39,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 st.title('NBA All Star Predictor')
 st.empty()
 st.header('Select the stats for your player on the left.')
-#st.dataframe(df.head())
 
 #SIDEBAR
 st.sidebar.title('PARAMETER SELECTION')
@@ -67,14 +58,6 @@ mpg = st.sidebar.slider('Minutes Played Per Game:', min_value=0.0, max_value=48.
 minutes = round(mpg*gp)
 
 st.sidebar.subheader('In Game Stats')
-# fga = st.sidebar.number_input('Total Field Goals Attempted', value=0, step=1)
-# fg = st.sidebar.number_input('Total Field Goals Made:', value=0, step=1, max_value=fga)
-
-# tga = st.sidebar.number_input('Threes Attempted:', value=0, step=1)
-# tm = st.sidebar.number_input('Threes Made:', value=0, step=1, max_value=tga)
-
-# fta = st.sidebar.number_input('Free Throws Attempted:', value=0, step=1)
-# ft = st.sidebar.number_input('Free Throws Made:', value=0, step=1, max_value=fta)
 
 ppg = st.sidebar.slider('Points per Game:', min_value=0.0, max_value=40.0, step=0.1)
 ppg = round(ppg * gp)
@@ -95,47 +78,36 @@ if gp == 0:
 else:
     tbl = st.sidebar.slider('Triple Doubles:', min_value=0, max_value=gp, step=1)
 
-
 stats = [age, pos, gp, gs, minutes, rpg, apg, spg, bpg, tpg, fpg, ppg, tbl]
 
 temp = pd.DataFrame(columns=['age', 'position', 'games_played', 'games_started', 'minutes',
        'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'fouls',
        'points', 'trip_dbl'])
 temp.loc[0] = stats
-
-
 temp[['age', 'games_played', 'games_started', 'minutes',
        'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'fouls',
        'points', 'trip_dbl']] = temp[['age', 'games_played', 'games_started', 'minutes',
        'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'fouls',
        'points', 'trip_dbl']].apply(pd.to_numeric)
-
 temp = columnTransformer.transform(temp)
 
 #Build Model
-# mod_data = lgb.Dataset(X_train, y_train)
-# model = lgb.train(params={'objective':'binary'}, train_set=mod_data)
 st.markdown('---')
 st.markdown('## **Baseline Models**')
 
 col1, col2, col3 = st.beta_columns([0.9, 1, 1])
 with col1:
 
-    model = LGBMClassifier()
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
+    lgbm_model = pickle.load(open('lgb.sav', 'rb'))
+    predictions = lgbm_model.predict(X_test)
 
     st.subheader("LightGBM Training Accuracy")
     st.text(f'Accuracy: {round(accuracy_score(y_test, predictions) * 100, 3)}%')
     st.code(classification_report(y_test, predictions))
 
-# st.code(df.columns.tolist())
-# st.code(model.feature_importances_)
-# st.code(model.feature_importances_)
-
     st.subheader('Input Prediction')
-    prediction = model.predict(temp)
-    proba = model.predict_proba(temp)
+    prediction = lgbm_model.predict(temp)
+    proba = lgbm_model.predict_proba(temp)
     if prediction == 1:
         st.header('Your player will be an All Star!')
         st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
@@ -145,21 +117,17 @@ with col1:
 
 with col2:
 
-    model = XGBClassifier(objective='binary:logistic', use_label_encoder=False)
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
+    xgb_model = XGBClassifier(objective='binary:logistic', use_label_encoder=False)
+    xgb_model.load_model('xgb.model')
+    predictions = xgb_model.predict(X_test)
 
     st.subheader("XGBoost Training Accuracy")
     st.text(f'Accuracy: {round(accuracy_score(y_test, predictions) * 100, 3)}%')
     st.code(classification_report(y_test, predictions))
 
-# st.code(df.columns.tolist())
-# st.code(model.feature_importances_)
-# st.code(model.feature_importances_)
-
     st.subheader('Input Prediction')
-    prediction = model.predict(temp)
-    proba = model.predict_proba(temp)
+    prediction = xgb_model.predict(temp)
+    proba = xgb_model.predict_proba(temp)
     if prediction == 1:
         st.header('Your player will be an All Star!')
         st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
@@ -169,21 +137,16 @@ with col2:
 
 with col3:
 
-    model = RandomForestClassifier(n_estimators=100)
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
+    rf_model = pickle.load(open('rf.sav', 'rb'))
+    predictions = rf_model.predict(X_test)
 
     st.subheader("RF Training Accuracy")
     st.text(f'Accuracy: {round(accuracy_score(y_test, predictions) * 100, 3)}%')
     st.code(classification_report(y_test, predictions))
 
-# st.code(df.columns.tolist())
-# st.code(model.feature_importances_)
-# st.code(model.feature_importances_)
-
     st.subheader('Input Prediction')
-    prediction = model.predict(temp)
-    proba = model.predict_proba(temp)
+    prediction = rf_model.predict(temp)
+    proba = rf_model.predict_proba(temp)
     if prediction == 1:
         st.header('Your player will be an All Star!')
         st.subheader(f'Probability: {round(proba[0][1] * 100, 2)}%')
