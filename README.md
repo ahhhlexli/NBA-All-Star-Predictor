@@ -5,3 +5,7 @@ Personal project to explore scraping and basic machine learning. Currently has a
 
 Big Question: Which players were all-stars?
 Current assumption - taking full season stats instead of stats up till all-star break.
+
+
+Link to Predictor:
+http://34.96.150.156:8501/
