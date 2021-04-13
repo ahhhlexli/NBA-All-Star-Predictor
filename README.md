@@ -8,4 +8,4 @@ Current assumption - taking full season stats instead of stats up till all-star 
 
 
 Link to Predictor:
-http://34.96.150.156:8501/
+https://share.streamlit.io/ahhhlexli/basketball_reference_scrape/app_model_only.py
